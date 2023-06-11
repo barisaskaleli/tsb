@@ -36,8 +36,8 @@ func Success(c *fiber.Ctx, data interface{}) error {
 	return Response(c, Structure{
 		Status:  SUCCESS,
 		Code:    http.StatusOK,
-		Message: nil,
-		Data:    data,
+		Message: data,
+		Data:    nil,
 	})
 }
 
