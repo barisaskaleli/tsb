@@ -63,8 +63,16 @@ func GetData(ctx *fiber.Ctx) error {
 		return response_trait.NotFound(ctx, errors)
 	}
 
+	// Get the selected file from the response
+	fileSchema, err := getSelectedFile(&response, input)
+
+	if err != nil {
+		errors := map[string]string{"message": err.Error()}
+		return response_trait.NotFound(ctx, errors)
+	}
+
 	// Download the file mentioned in the response
-	err = getActualFile(&response)
+	err = getCascoFile(fileSchema)
 
 	if err != nil {
 		errors := map[string]string{"message": err.Error()}
@@ -107,9 +115,33 @@ func sendRequest(Input schema.RequestModel) ([]byte, error) {
 	return responseBody, nil
 }
 
-func getActualFile(res *schema.TSBModel) error {
-	filePath = filePath + res.ActualFile.Name // Update the file path by appending the file name
-	url := res.ActualFile.FilePath            // Retrieve the URL from where the file needs to be downloaded
+func getSelectedFile(res *schema.TSBModel, Input schema.RequestModel) (tsbFile schema.TSBFile, err error) {
+	var selectedFile schema.TSBFile
+
+	for _, file := range res.Files {
+		year, err := strconv.Atoi(file.KaskoYear)
+
+		if err != nil {
+			return selectedFile, err
+		}
+
+		month, err := strconv.Atoi(file.KaskoMonth)
+
+		if err != nil {
+			return selectedFile, err
+		}
+
+		if year == Input.Year && month == Input.Month {
+			selectedFile = file
+			return selectedFile, nil
+		}
+	}
+	return selectedFile, fmt.Errorf("file not found")
+}
+
+func getCascoFile(selectedFileSchema schema.TSBFile) error {
+	filePath = filePath + selectedFileSchema.Name // Update the file path by appending the file name
+	url := selectedFileSchema.FilePath            // Retrieve the URL from where the file needs to be downloaded
 
 	// Create a new file with the updated path
 	file, err := os.Create(filePath)
@@ -139,7 +171,7 @@ func getActualFile(res *schema.TSBModel) error {
 		return fmt.Errorf("error copying file: %w", err)
 	}
 
-	fmt.Printf("Successfully download file from %s\n Kasko Year: %s\n Kasko Month: %s\n", url, res.ActualFile.KaskoYear, res.ActualFile.KaskoMonth)
+	fmt.Printf("Successfully download file from %s\n Kasko Year: %s\n Kasko Month: %s\n", url, selectedFileSchema.KaskoYear, selectedFileSchema.KaskoMonth)
 
 	return nil
 }
