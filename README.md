@@ -19,12 +19,13 @@ This project allows users to save this data by simply changing the database sett
 
 The API has one route:
 
-- POST `http://127.0.0.1:3000/api/get-files`: Accepts a JSON payload with a "year" field (integer only, e.g., 2023).
+- POST `http://127.0.0.1:3000/api/get-files`: Accepts a JSON payload with a "year" and "month" field (integer only, e.g., 2023 and 2 (February)).
 
 Example request:
 ```json
 {
-  "year": 2023
+  "year": 2023,
+  "month": 1
 }
 ```
 ## Configuration
