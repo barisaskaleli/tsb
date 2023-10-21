@@ -140,11 +140,25 @@ func getSelectedFile(res *schema.TSBModel, Input schema.RequestModel) (tsbFile s
 }
 
 func getCascoFile(selectedFileSchema schema.TSBFile) error {
+	fileDirectory := filePath
 	filePath = filePath + selectedFileSchema.Name // Update the file path by appending the file name
 	url := selectedFileSchema.FilePath            // Retrieve the URL from where the file needs to be downloaded
 
+	if _, err := os.Stat(fileDirectory); os.IsNotExist(err) {
+		// Directory does not exist, create it
+		err := os.MkdirAll(fileDirectory, 0755)
+
+		if err != nil {
+			fmt.Println("Error creating directory:", err)
+		}
+
+		fmt.Println("Directory created successfully!")
+	}
+
 	// Create a new file with the updated path
 	file, err := os.Create(filePath)
+	_ = file.Chmod(0755)
+
 	if err != nil {
 		return fmt.Errorf("error creating file: %w", err)
 	}
